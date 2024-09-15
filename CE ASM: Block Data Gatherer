@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1676</ID>
+      <Description>"Building Bot CC"</Description>
+      <Options moManualExpandCollapse="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+alloc(building_blueprint,1000000)
+registersymbol(building_blueprint)
+
+alloc(counter,4)
+registersymbol(counter)
+counter:
+db 0
+
+
+alloc(block_x_offset,1)
+alloc(block_y_offset,1)
+alloc(block_z_offset,1)
+registersymbol(block_x_offset)
+registersymbol(block_y_offset)
+registersymbol(block_z_offset)
+block_x_offset:
+db 0
+block_y_offset:
+db 0
+block_z_offset:
+db 0
+
+//x, y, z, direction, sculpty variant, slot ID
+building_blueprint:
+db FF FF FF FF FF
+
+ 
+[DISABLE]
+dealloc(building_blueprint)
+unregistersymbol(building_blueprint)
+
+dealloc(counter)
+unregistersymbol(counter)
+
+dealloc(block_x_offset)
+dealloc(block_y_offset)
+dealloc(block_z_offset)
+unregistersymbol(block_x_offset)
+unregistersymbol(block_y_offset)
+unregistersymbol(block_z_offset)
+
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>1688</ID>
+          <Description>"Block Copier"</Description>
+          <Options moActivateChildrenAsWell="1" moDeactivateChildrenAsWell="1"/>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+//code from here to '[DISABLE]' will be used to enable the cheat
+alloc(newmem,2048)
+label(returnhere)
+label(originalcode)
+label(exit)
+
+alloc(x_start,1)
+alloc(y_start,1)
+alloc(z_start,1)
+registersymbol(x_start)
+registersymbol(y_start)
+registersymbol(z_start)
+
+alloc(x_end,1)
+alloc(y_end,1)
+alloc(z_end,1)
+registersymbol(x_end)
+registersymbol(y_end)
+registersymbol(z_end)
+
+x_start:
+db #0
+y_start:
+db #0
+z_start:
+db #0
+x_end:
+db #99
+y_end:
+db #99
+z_end:
+db #99
+
+
+
+alloc(direction,1)
+registersymbol(direction)
+direction:
+db 0
+
+alloc(end,4)
+registersymbol(end)
+
+
+
+newmem:
+
+//only record blocks inside the boxed region
+//created by the 2 x,y,z coordinates
+check_bounding_box:
+push ax
+
+mov al, byte ptr [esi+2]
+cmp al, byte ptr [x_start]
+jl exit_bounding_box
+cmp al, byte ptr [x_end]
+jg exit_bounding_box
+
+mov al, byte ptr [esi+4]
+cmp al, byte ptr [y_start]
+jl exit_bounding_box
+cmp al, byte ptr [y_end]
+jg exit_bounding_box
+
+mov al, byte ptr [esi+6]
+cmp al, byte ptr [z_start]
+jl exit_bounding_box
+cmp al, byte ptr [z_end]
+jg exit_bounding_box
+pop ax
+
+jmp record_direction
+
+exit_bounding_box:
+pop ax
+
+push ebx
+mov ebx,[esi+2]
+mov [end],ebx
+pop ebx
+
+jmp originalcode
+
+
+//cache direction to use later in the same script
+//registersymbol is used as to not mess with values
+//in the stack when pushing / popping
+record_direction:
+push cx
+mov cl,ah
+and cl,F0
+shr cl,4
+mov byte ptr [direction],cl
+pop cx
+
+push ax
+and ax,0FFF
+cmp ax,00
+je restore
+
+//write data collected from the block data address
+//to the blueprint address with standard format
+//x, y, z, direction, sculpty variant, slot ID
+log_data:
+push ebx
+push ecx
+mov ecx,building_blueprint
+add ecx,[counter]
+
+movzx ebx,byte ptr [esi+2]
+mov byte ptr[ecx],bl
+
+movzx ebx,byte ptr [esi+4]
+mov byte ptr[ecx+1],bl
+
+movzx ebx,byte ptr [esi+6]
+mov byte ptr[ecx+2],bl
+
+movzx ebx,byte ptr [direction]
+mov byte ptr[ecx+3],bl
+
+movzx ebx,byte ptr [esi+11]
+mov byte ptr[ecx+4],bl
+
+mov word ptr[ecx+5],ax
+
+//mark the next set of bytes as ending bytes
+//so the machine will know when to stop building
+//this will be overwritten by the next iteration
+//if it is not the last block
+mov [ecx+7],FFFFFFFF
+add [counter],7
+pop ecx
+pop ebx
+
+//returns ax to its original orientation value
+restore:
+pop ax
+
+
+originalcode:
+[REDACTED BYTES]
+
+exit:
+jmp returnhere
+
+[REDACTED ADDRESS]:
+jmp newmem
+nop 2
+returnhere:
+
+
+ 
+ 
+[DISABLE]
+dealloc(newmem)
+dealloc(x_start)
+dealloc(y_start)
+dealloc(z_start)
+unregistersymbol(x_start)
+unregistersymbol(y_start)
+unregistersymbol(z_start)
+
+dealloc(x_end)
+dealloc(y_end)
+dealloc(z_end)
+unregistersymbol(x_end)
+unregistersymbol(y_end)
+unregistersymbol(z_end)
+[REDACTED ADDRESS]:
+[REDACTED BYTES]
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>1927</ID>
+          <Description>"Offsets"</Description>
+          <Options moHideChildren="1"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <GroupHeader>1</GroupHeader>
+          <CheatEntries>
+            <CheatEntry>
+              <ID>1924</ID>
+              <Description>"x"</Description>
+              <ShowAsSigned>1</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>block_x_offset</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>1925</ID>
+              <Description>"y"</Description>
+              <ShowAsSigned>1</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>block_y_offset</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>1926</ID>
+              <Description>"z"</Description>
+              <ShowAsSigned>1</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>block_z_offset</Address>
+            </CheatEntry>
+          </CheatEntries>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>1680</ID>
+          <Description>"Debug"</Description>
+          <Options moHideChildren="1" moManualExpandCollapse="1"/>
+          <GroupHeader>1</GroupHeader>
+          <CheatEntries>
+            <CheatEntry>
+              <ID>1681</ID>
+              <Description>"Block Location"</Description>
+              <GroupHeader>1</GroupHeader>
+              <CheatEntries>
+                <CheatEntry>
+                  <ID>1682</ID>
+                  <Description>"x"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>block_x</Address>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1683</ID>
+                  <Description>"y"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>block_y</Address>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>1684</ID>
+                  <Description>"z"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>block_z</Address>
+                </CheatEntry>
+              </CheatEntries>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>1685</ID>
+              <Description>"Counter"</Description>
+              <ShowAsHex>1</ShowAsHex>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>counter</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>1686</ID>
+              <Description>"Selected Coordinate Address"</Description>
+              <ShowAsHex>1</ShowAsHex>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>selected_coordinate</Address>
+            </CheatEntry>
+          </CheatEntries>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>
