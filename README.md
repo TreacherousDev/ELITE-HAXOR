@@ -1,14 +1,16 @@
-**E**xtraordinary
-**L**itematica
-**I**ntegrated
-**T**ranslator 
-**E**mbedded
+```
+Extraordinary
+Litematica
+Integrated
+Translator 
+Embedded
 
-**H**ighly
-**A**utomated
-**X**eroxer
-**O**f
-**R**ealms
+Highly
+Automated
+Xeroxer
+Of
+Realms
+```
 
 ### ELITE HAXOR
 ----------------------------------------------------------
