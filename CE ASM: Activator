@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1929</ID>
+      <Description>"Send Once"</Description>
+      <Options moActivateChildrenAsWell="1" moDeactivateChildrenAsWell="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+alloc(newmem,2048)
+label(returnhere)
+label(originalcode)
+label(exit)
+
+alloc(one_time_flag,1)
+registersymbol(one_time_flag)
+one_time_flag:
+db 0
+
+newmem:
+cmp byte ptr [one_time_flag],1
+je originalcode
+
+
+continue:
+mov [REDACTED ADDRESS],1
+mov byte ptr [one_time_flag],1
+
+originalcode:
+[REDACTED BYTES]
+
+exit:
+jmp returnhere
+
+[REDACTED ADDRESS]:
+jmp newmem
+nop
+returnhere:
+
+
+
+
+[DISABLE]
+//code from here till the end of the code will be used to disable the cheat
+dealloc(newmem)
+[REDACTED ADDRESS]:
+[REDACTED BYTES]
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>1928</ID>
+          <Description>"Reload Realm"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+alloc(newmem,10000)
+label(returnhere)
+label(originalcode)
+label(exit)
+
+newmem:
+check_validity:
+cmp [esp],[REDACTED ADDRESS]
+
+jne originalcode
+push ebx
+[REDACTED INSTRUCTIONS]
+pop ebx
+jmp originalcode
+
+
+originalcode:
+[REDACTED BYTES]
+
+
+exit:
+jmp returnhere
+
+[REDACTED ADDRESS]:
+jmp newmem
+nop
+returnhere:
+
+
+
+[DISABLE]
+//code from here till the end of the code will be used to disable the cheat
+dealloc(newmem)
+[REDACTED ADDRESS]:
+[REDACTED BYTES]
+
+
+
+</AssemblerScript>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>
