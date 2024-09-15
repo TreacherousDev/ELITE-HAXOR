@@ -1,14 +1,14 @@
-### Extraordinary
-### Litematica
-### Integrated
-### Translator 
-### Embedded
+**Extraordinary
+Litematica
+Integrated
+Translator 
+Embedded
 
-### Highly
-### Automated
-### Xeroxer
-### Of
-### Realms
+Highly
+Automated
+Xeroxer
+Of
+Realms**
 
 
 
