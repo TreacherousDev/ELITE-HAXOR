@@ -1,4 +1,4 @@
-### Extraotrdinary
+### Extraordinary
 ### Litematica
 ### Integrated
 ### Translator 
