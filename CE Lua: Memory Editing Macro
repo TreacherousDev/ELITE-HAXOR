@@ -1,0 +1,61 @@
+function onOpenProcess()
+    local buildbot = addresslist_getMemoryRecordByDescription(getAddressList(), "Building Bot CC")
+    local blockcopier = addresslist_getMemoryRecordByDescription(getAddressList(), "Block Copier")
+    local sendpacket = addresslist_getMemoryRecordByDescription(getAddressList(), "Send Once")
+    local reloadrealm = addresslist_getMemoryRecordByDescription(getAddressList(), "Reload Realm")
+    buildbot.Active = true
+    blockcopier.Active = true
+    Sleep(1000)
+    sendpacket.Active = true
+    reloadrealm.Active = true
+end
+
+
+
+
+function writeToFile()
+    local addr_counter = getAddressSafe("[counter]")
+    local addr_start = getAddressSafe("building_blueprint")
+    local addr_end = addr_start + addr_counter
+
+    local value_size = 1
+    io.output("D:/CC to Minecraft/LuaOutput.txt")
+    local count = 0
+    for i = addr_start, addr_end, value_size do
+        local value = readBytes(i, 1, false)
+        local str = string.format("%01X", value)
+        io.write(str)
+
+        count = count + 1
+        if count % 7 == 0 then
+           io.write("\n")  -- New line after every 7th byte
+        else
+            io.write(" ")  -- Regular space between other bytes
+        end
+    end
+end
+
+
+local success = OpenProcess('Cubic.exe')
+
+if success then
+    -- Load cheat table 
+    local cheatTableFile = 'C:/Users/adant/OneDrive/Documents/CCScraper.ct'
+    loadTable(cheatTableFile)
+    -- active function and script:
+    onOpenProcess()
+    Sleep(5000)
+    writeToFile()
+else
+    print("Failed to attach to the process.")
+end
+
+local buildbot = addresslist_getMemoryRecordByDescription(getAddressList(), "Building Bot CC")
+local blockcopier = addresslist_getMemoryRecordByDescription(getAddressList(), "Block Copier")
+local sendpacket = addresslist_getMemoryRecordByDescription(getAddressList(), "Send Once")
+local reloadrealm = addresslist_getMemoryRecordByDescription(getAddressList(), "Reload Realm")
+buildbot.Active = false
+blockcopier.Active = false
+sendpacket.Active = false
+reloadrealm.Active = false
+
