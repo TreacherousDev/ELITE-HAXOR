@@ -3045,10 +3045,14 @@ def bytes_to_direction(bytes):
 
 # Windows API bullshit
 PROCESS_QUERY_INFORMATION = 0x0400
+PROCESS_ALL_ACCESS = 0x1F0FFF
 PROCESS_VM_READ = 0x0010
 MAX_MODULE_NAME32 = 255
+MEM_COMMIT = 0x1000
+MEM_RESERVE = 0x2000
+PAGE_READWRITE = 0x04
 psapi = ctypes.WinDLL('psapi.dll')
-kernel32 = ctypes.WinDLL('kernel32.dll')
+kernel32 = ctypes.windll.kernel32
 EnumProcessModules = psapi.EnumProcessModules
 EnumProcessModules.restype = wintypes.BOOL
 EnumProcessModules.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.HMODULE), wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
@@ -3061,6 +3065,9 @@ OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
 CloseHandle = kernel32.CloseHandle
 CloseHandle.restype = wintypes.BOOL
 CloseHandle.argtypes = [wintypes.HANDLE]
+VirtualAllocEx = kernel32.VirtualAllocEx
+VirtualAllocEx.argtypes = [wintypes.HANDLE, wintypes.LPVOID, ctypes.c_size_t, wintypes.DWORD, wintypes.DWORD]
+VirtualAllocEx.restype = wintypes.LPVOID
 
 # Get location of exe in memory
 def get_base_address(pid, exe_name) -> int:
@@ -3097,20 +3104,20 @@ def get_pid() -> int:
 # Resets the counter variable in memory to 0
 def reset_counter():
     pid = get_pid()
-    process_handle = ctypes.windll.kernel32.OpenProcess(0x1F0FFF, False, pid)
+    process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
     if not process_handle:
         raise Exception("Failed to open the process")
     
     # Write the bytes to memory region
     zero_in_bytes = ("00 00 00 00")
     write_memory(process_handle, zero_in_bytes, counter_memory_address)
-    ctypes.windll.kernel32.CloseHandle(process_handle)
+    kernel32.CloseHandle(process_handle)
 
 # Grab the data of all non air blocks in the realm
 # x, y, z, direction, sculpty variant, block id
 def read_realm_data() -> list:
     pid = get_pid()
-    process_handle = ctypes.windll.kernel32.OpenProcess(0x1F0FFF, False, pid)
+    process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
     if not process_handle:
         raise Exception("Failed to open the process")
     
@@ -3121,19 +3128,19 @@ def read_realm_data() -> list:
 
     # Get the block data array of bytes
     blueprint_buffer = read_memory(process_handle, blueprint_memory_address, data_length)
-    ctypes.windll.kernel32.CloseHandle(process_handle)
+    kernel32.CloseHandle(process_handle)
     return list(blueprint_buffer)
 
 # Inject bytes into targeted memory regions
 def inject_game_code():
     pid = get_pid()
-    process_handle = ctypes.windll.kernel32.OpenProcess(0x1F0FFF, False, pid)
+    process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
     if not process_handle:
         raise Exception("Failed to open the process")
     
     exe_address = get_base_address(pid, process_name)
     # Static addresses for variables
-    write_memory(process_handle, variables_content, 0x09000000)
+    write_memory(process_handle, variables_content, counter_memory_address)
     # Functions
     write_memory(process_handle, code_cave_1_content, exe_address + code_cave_1_offset)
     write_memory(process_handle, function_jump_1_content, exe_address + function_jump_1_offset)
@@ -3141,16 +3148,16 @@ def inject_game_code():
     write_memory(process_handle, function_jump_2_content, exe_address + function_jump_2_offset)
     write_memory(process_handle, code_cave_3_content, exe_address + code_cave_3_offset)
     write_memory(process_handle, function_jump_3_content, exe_address + function_jump_3_offset)
-    ctypes.windll.kernel32.CloseHandle(process_handle)
+    kernel32.CloseHandle(process_handle)
 
 def write_memory(handle, content, address):
     content_in_bytes = [int(byte, 16) for byte in content.split()]
     memory_buffer = (ctypes.c_ubyte * len(content_in_bytes))(*content_in_bytes)
-    ctypes.windll.kernel32.WriteProcessMemory(handle, address, memory_buffer, len(content_in_bytes), None)
+    kernel32.WriteProcessMemory(handle, address, memory_buffer, len(content_in_bytes), None)
 
 def read_memory(handle, address, length) -> ctypes.c_ubyte:
     memory_buffer = (ctypes.c_ubyte * length)()
-    ctypes.windll.kernel32.ReadProcessMemory(handle, address, memory_buffer, length, None)
+    kernel32.ReadProcessMemory(handle, address, memory_buffer, length, None)
     return memory_buffer
 
 # User interface
@@ -3233,42 +3240,75 @@ def create_litematic_pixel(schematic_directory, filename):
     schem.save(schem_file_path)
     reset_counter()
 
+def address_to_bytes_string(address):
+    byte_string = address.to_bytes(4, 'little')
+    formatted_string = ' '.join(f'{b:02x}' for b in byte_string)
+    return formatted_string + " "
+
 # Code Injection parameters
 process_name = "Cubic.exe"
-blueprint_memory_address = 0x09000010
-counter_memory_address = 0x09000000
+data_base_address = 0
+blueprint_memory_address = 0
+counter_memory_address = 0
 # Static Variables Reference
 variables_content = ("00 00 00 00 00 00 00 63 63 63")
 # Function 1
 code_cave_1_offset = 0x2EC321
-code_cave_1_content = (
-    "66 50 8A 46 02 3A 05 04 00 00 09 0F 8C 49 00 00 00 3A 05 07 00 00 09 0F 8F 3D 00 00 00 8A 46 04 "
-    "3A 05 05 00 00 09 0F 8C 2E 00 00 00 3A 05 08 00 00 09 0F 8F 22 00 00 00 8A 46 06 3A 05 06 00 00 "
-    "09 0F 8C 13 00 00 00 3A 05 09 00 00 09 0F 8F 07 00 00 00 66 58 E9 07 00 00 00 66 58 E9 66 00 00 "
-    "00 66 52 66 51 88 E1 80 E1 F0 C0 E9 04 88 CA 66 59 66 50 66 25 FF 0F 66 3D 00 00 0F 84 42 00 00 "
-    "00 53 51 B9 10 00 00 09 03 0D 00 00 00 09 0F B6 5E 02 88 19 0F B6 5E 04 88 59 01 0F B6 5E 06 88 "
-    "59 02 0F B6 DA 88 51 03 0F B6 5E 11 88 59 04 66 89 41 05 C7 41 07 FF FF FF FF 83 05 00 00 00 09 "
-    "07 59 5B 66 58 66 5A 66 89 06 C6 46 0C 00 E9 36 C5 DD FF")
+code_cave_1_content = ""
 function_jump_1_offset = 0xC8923
 function_jump_1_content = ("E9 F9 39 22 00 66 90")
 # Function 2
 code_cave_2_offset = 0x2EC4A6
-code_cave_2_content = ("C7 05 00 00 00 09 00 00 00 00 9C 50 89 3C 24 E9 6B EB FD 00")
+code_cave_2_content = ""
 function_jump_2_offset = 0x12CB020
 function_jump_2_content = ("E9 81 14 02 FF")
 # Function 3
 code_cave_3_offset = 0x2EC63F
-code_cave_3_content = (
-    "53 52 BB 10 00 00 09 81 3B FF FF FF FF 0F 84 33 00 00 00 0F B6 13 3A 50 02 0F 85 22 00 00 00 0F B6 "
-    "53 01 3A 50 04 0F 85 15 00 00 00 0F B6 53 02 3A 50 06 0F 85 08 00 00 00 88 4B 04 E9 05 00 00 00 83 "
-    "C3 07 EB C1 5A 5B 88 48 11 8B 4D 08 E9 65 D0 EE FF")
+code_cave_3_content = ""
 function_jump_3_offset = 0x1D96F1
 function_jump_3_content = ("E9 49 2F 11 00 90")
 
 #schematic_directory = "" #"C:/Users/adant/curseforge/minecraft/Instances/Litematica/schematics"
 
+def manage_memory():
+    global data_base_address
+    global counter_memory_address 
+    global blueprint_memory_address
+    global code_cave_1_content
+    global code_cave_2_content
+    global code_cave_3_content
+
+    data_base_address = allocate_memory_in_process(7000000)
+    counter_memory_address = data_base_address
+    blueprint_memory_address = data_base_address + 10
+    x_start = address_to_bytes_string(data_base_address + 4)
+    y_start = address_to_bytes_string(data_base_address + 5)
+    z_start = address_to_bytes_string(data_base_address + 6)
+    x_end = address_to_bytes_string(data_base_address + 7)
+    y_end = address_to_bytes_string(data_base_address + 8)
+    z_end = address_to_bytes_string(data_base_address + 9)
+    bp_addr = address_to_bytes_string(blueprint_memory_address)
+    counter_addr = address_to_bytes_string(data_base_address)
+
+    code_cave_1_content	= (
+        "66 50 8A 46 02 3A 05 " 
+        + x_start + "0F 8C 49 00 00 00 3A 05 " + x_end + "0F 8F 3D 00 00 00 8A 46 04 3A 05 "
+        + y_start + "0F 8C 2E 00 00 00 3A 05 " + y_end + "0F 8F 22 00 00 00 8A 46 06 3A 05 "
+        + z_start + "0F 8C 13 00 00 00 3A 05 " + z_end + "0F 8F 07 00 00 00 66 58 E9 07 00 "
+        "00 00 66 58 E9 66 00 00 00 66 52 66 51 88 E1 80 E1 F0 C0 E9 04 88 CA 66 59 66 50 66 "
+        "25 FF 0F 66 3D 00 00 0F 84 42 00 00 00 53 51 B9 " + bp_addr + "03 0D " + counter_addr
+        + "0F B6 5E 02 88 19 0F B6 5E 04 88 59 01 0F B6 5E 06 88 59 02 0F B6 DA 88 51 03 0F "
+        "B6 5E 11 88 59 04 66 89 41 05 C7 41 07 FF FF FF FF 83 05 " + counter_addr + "07 59 "
+        "5B 66 58 66 5A 66 89 06 C6 46 0C 00 E9 36 C5 DD FF") 
+    code_cave_2_content = ("C7 05 " + counter_addr + "00 00 00 00 9C 50 89 3C 24 E9 6B EB FD 00")
+    code_cave_3_content = (
+    "53 52 BB " + bp_addr +  "81 3B FF FF FF FF 0F 84 33 00 00 00 0F B6 13 3A 50 02 0F 85 22 "
+    "00 00 00 0F B6 53 01 3A 50 04 0F 85 15 00 00 00 0F B6 53 02 3A 50 06 0F 85 08 00 00 00 "
+    "88 4B 04 E9 05 00 00 00 83 C3 07 EB C1 5A 5B 88 48 11 8B 4D 08 E9 65 D0 EE FF")
+
 
 def main():
+    manage_memory()
     inject_game_code()
 
     def select_directory():
@@ -3346,7 +3386,7 @@ def main():
 
         if schematic_directory and filename:
             pid = get_pid()
-            process_handle = ctypes.windll.kernel32.OpenProcess(0x1F0FFF, False, pid)
+            process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
             counter_buffer = read_memory(process_handle, counter_memory_address, 4)
             counter = ctypes.cast(counter_buffer, ctypes.POINTER(ctypes.c_uint32)).contents.value
             if counter == 0:
@@ -3436,10 +3476,24 @@ def main():
     root.mainloop()
 
 
+# Example function to allocate memory in a target process
+def allocate_memory_in_process(size):
+    pid = get_pid()
+    process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
+    if not process_handle:
+        raise Exception("Failed to open the process")
+    
+    # Allocate memory (7 million bytes)
+    allocated_memory = VirtualAllocEx(process_handle, None, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)
+    if not allocated_memory:
+        raise ctypes.WinError(ctypes.get_last_error())
+    
+    # print(f"Allocated memory at address: {allocated_memory:#x}")
+    return allocated_memory
+
+
 if __name__ == "__main__":
     main()
-
-
 
 
 
