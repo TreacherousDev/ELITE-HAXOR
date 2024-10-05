@@ -5,7 +5,7 @@ a = Analysis(
     ['Elite_Haxor.py'],
     pathex=[],
     binaries=[],
-    datas=[('elite_haxor_logo.png', '.')],
+    datas=[('elite_haxor_logo.png', '.'), ('block_data.py', '.'), ('block_mappings.json', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
