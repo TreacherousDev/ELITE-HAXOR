@@ -26,4 +26,20 @@ https://github.com/TreacherousDev/ELITE-HAXOR/releases
 ![image](https://github.com/user-attachments/assets/4d0052ce-e6ba-4f33-9209-a37920c77fb3)
 ![image](https://github.com/user-attachments/assets/1c5f899f-8fc1-4f21-9a36-6281a0ebac53)
 
+## Building your own Version
+### Prerequisites
+You will need to install the latest version of Python, along with the follwing packages:
+- Litemapy
+- Numpy
+- Ctypes
+- Psutil
+- Json
+- OS
+- Sys
+- Pyinstaller
 
+### Setup
+1. Clone the repository or download it as a ZIP and unpack.
+2. Using file explorer, go to the root folder of the project and type `cmd` on the directory. This should open command prompt at this file location.
+3. Type `pyinstaller --onefile --noconsole --add-data "elite_haxor_logo.png;." --add-data "block_data.py;." --add-data "block_mappings.json;." Elite_Haxor.py` and press enter.
+4. Wait for the build to finish, and afterwards you can test your new build located inside the `dist` folder.
