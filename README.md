@@ -41,6 +41,7 @@ You will need to install the latest version of Python, along with the follwing p
 ### Setup
 1. Clone the repository or download it as a ZIP and unpack.
 2. Using file explorer, go to the root folder of the project and type `cmd` on the directory. This should open command prompt at this file location.
-3. Type th e following command below and press enter. 
+3. Type th e following command below and press enter.
+
 ```pyinstaller --onefile --noconsole --add-data "elite_haxor_logo.png;." --add-data "block_data.py;." --add-data "block_mappings.json;." Elite_Haxor.py```
-4. Wait for the build to finish, and afterwards you can test your new build located inside the `dist` folder.
+5. Wait for the build to finish, and afterwards you can test your new build located inside the `dist` folder.
