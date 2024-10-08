@@ -44,4 +44,5 @@ You will need to install the latest version of Python, along with the follwing p
 3. Type th e following command below and press enter.
 
 ```pyinstaller --onefile --noconsole --add-data "elite_haxor_logo.png;." --add-data "block_data.py;." --add-data "block_mappings.json;." Elite_Haxor.py```
-5. Wait for the build to finish, and afterwards you can test your new build located inside the `dist` folder.
+
+4. Wait for the build to finish, and afterwards you can test your new build located inside the `dist` folder.
