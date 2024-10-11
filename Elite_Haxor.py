@@ -13,9 +13,6 @@ from block_data import block_options, cc_block_name
 
 block_options = sorted(block_options)
 
-# Yes, I had to do this all manually. 
-# May you shed a tear for all the lost time, hope and sanity that went into making this switch table.
-# The worst part is that it is not even remotely close to being complete. Wonderful :))
 def get_mc_block_from_cc_id(cc_id: str, direction: str) -> BlockState:
     mc_id  = "minecraft:" + cc_to_mc_mapping.get(str(cc_id), "smooth_stone")
     mc_block = BlockState(mc_id, facing=direction, waterlogged="false")
@@ -246,6 +243,17 @@ def address_to_bytes_string(address):
     formatted_string = ' '.join(f'{b:02x}' for b in byte_string)
     return formatted_string + " "
 
+def allocate_memory_in_process(size):
+    pid = get_pid()
+    process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
+    if not process_handle:
+        raise Exception("Failed to open the process")
+    
+    allocated_memory = VirtualAllocEx(process_handle, None, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)
+    if not allocated_memory:
+        raise ctypes.WinError(ctypes.get_last_error())
+    return allocated_memory
+
 # Code Injection parameters
 process_name = "Cubic.exe"
 data_base_address = 0
@@ -254,20 +262,20 @@ counter_memory_address = 0
 # Static Variables Reference
 variables_content = ("00 00 00 00 00 00 00 63 63 63")
 # Function 1
-code_cave_1_offset = 0x2EC321
+code_cave_1_offset = 0x2ED4F7
 code_cave_1_content = ""
-function_jump_1_offset = 0xC8923
-function_jump_1_content = ("E9 F9 39 22 00 66 90")
+function_jump_1_offset = 0xC8BE8
+function_jump_1_content = ("E9 0A 49 22 00 66 90")
 # Function 2
-code_cave_2_offset = 0x2EC4A6
+code_cave_2_offset = 0x2ED5E0 
 code_cave_2_content = ""
-function_jump_2_offset = 0x12CB020
-function_jump_2_content = ("E9 81 14 02 FF")
+function_jump_2_offset = 0x193E5F 
+function_jump_2_content = ("E9 7C 97 15 00 66 90")
 # Function 3
-code_cave_3_offset = 0x2EC63F
+code_cave_3_offset = 0x2ED616
 code_cave_3_content = ""
-function_jump_3_offset = 0x1D96F1
-function_jump_3_content = ("E9 49 2F 11 00 90")
+function_jump_3_offset = 0x1DAEE2
+function_jump_3_content = ("E9 2F 27 11 00 90")
 
 #schematic_directory = "" #"C:/Users/adant/curseforge/minecraft/Instances/Litematica/schematics"
 
@@ -300,12 +308,12 @@ def manage_memory():
         "25 FF 0F 66 3D 00 00 0F 84 42 00 00 00 53 51 B9 " + bp_addr + "03 0D " + counter_addr
         + "0F B6 5E 02 88 19 0F B6 5E 04 88 59 01 0F B6 5E 06 88 59 02 0F B6 DA 88 51 03 0F "
         "B6 5E 11 88 59 04 66 89 41 05 C7 41 07 FF FF FF FF 83 05 " + counter_addr + "07 59 "
-        "5B 66 58 66 5A 66 89 06 C6 46 0C 00 E9 36 C5 DD FF") 
-    code_cave_2_content = ("C7 05 " + counter_addr + "00 00 00 00 9C 50 89 3C 24 E9 6B EB FD 00")
+        "5B 66 58 66 5A 66 89 06 C6 46 0C 00 E9 25 B6 DD FF") 
+    code_cave_2_content = ("C7 05 " + counter_addr + "00 00 00 00 83 4D FC FF 8D 4D AC E9 70 68 EA FF")
     code_cave_3_content = (
     "53 52 BB " + bp_addr +  "81 3B FF FF FF FF 0F 84 33 00 00 00 0F B6 13 3A 50 02 0F 85 22 "
     "00 00 00 0F B6 53 01 3A 50 04 0F 85 15 00 00 00 0F B6 53 02 3A 50 06 0F 85 08 00 00 00 "
-    "88 4B 04 E9 05 00 00 00 83 C3 07 EB C1 5A 5B 88 48 11 8B 4D 08 E9 65 D0 EE FF")
+    "88 4B 04 E9 05 00 00 00 83 C3 07 EB C1 5A 5B 88 48 11 8B 4D 08 E9 7F D8 EE FF")
 
 cc_to_mc_mapping = {}
 def main():
@@ -337,6 +345,10 @@ def main():
     cc_to_mc_mapping = load_mapping()
 
     def save_mapping():
+        for key, value in cc_to_mc_mapping.items():
+            if value in block_options:
+                continue
+            cc_to_mc_mapping[key] = "smooth_stone"
         # Save the current mapping to the file
         with open(mapping_file_path, 'w') as f:
             json.dump(cc_to_mc_mapping, f, indent=4)  # Use indent for readability
@@ -359,49 +371,6 @@ def main():
         mapping_window.configure(bg="#f0f4f8")
         mapping_window.geometry("600x720")
         mapping_window.resizable(False, False)
-
-        # Create a frame for the save and cancel buttons
-        bottom_frame = tk.Frame(mapping_window, bg="#f0f4f8")
-        bottom_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
-
-        # Exit button
-        exit_button = tk.Button(bottom_frame, text="Exit", command=mapping_window.destroy,
-                                font=("Helvetica", 10), bg="#f2545b", fg="white", relief="flat", activebackground="#f0323e", padx=8, pady=4)
-        exit_button.pack(side=tk.RIGHT, padx=5)
-
-        # Create a frame for the search bar
-        search_frame = tk.Frame(mapping_window, bg="#f0f4f8")
-        search_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=(10, 0))
-
-        # Search bar
-        search_label = tk.Label(search_frame, text="Search:", bg="#f0f4f8", fg="#4a4e69", font=("Helvetica", 11))
-        search_label.pack(side=tk.LEFT)
-
-        search_entry = tk.Entry(search_frame, width=56, font=("Helvetica", 11), bg="#e8eaf6", fg="#4a4e69", relief="flat", highlightthickness=1, highlightbackground="#d4e6f1")
-        search_entry.pack(side=tk.LEFT, padx=5, pady=5, ipady=4)
-
-        clear_search_button = tk.Button(search_frame, text=" X ", command=lambda: clear_search(),
-                                        font=("Helvetica", 10), bg="#f2545b", fg="white", relief="flat", activebackground="#f0323e", padx=8, pady=3)
-        clear_search_button.pack(side=tk.LEFT, padx=0)
-
-        # Previous button
-        prev_button = tk.Button(bottom_frame, text="Previous", command=lambda: change_page(-1),
-                                font=("Helvetica", 10), bg="#a3d39c", fg="white", relief="flat", activebackground="#86b08a", padx=8, pady=4)
-        prev_button.pack(side=tk.LEFT, padx=5)
-
-        # Next button
-        next_button = tk.Button(bottom_frame, text="Next", command=lambda: change_page(1),
-                                font=("Helvetica", 10), bg="#a3d39c", fg="white", relief="flat", activebackground="#86b08a", padx=8, pady=4)
-        next_button.pack(side=tk.LEFT, padx=5)
-
-        # Create a frame for comboboxes
-        data_frame = tk.Frame(mapping_window, bg="#f0f4f8")
-        data_frame.pack(fill="both", expand=True, padx=10, pady=10)
-
-        # Pagination variables
-        items_per_page = 18  # Number of items to display per page
-        current_page = 0  # Current page index
-        filtered_items = list(cc_to_mc_mapping.items())  # Initialize with all items
 
         def clear_search():
             search_entry.delete(0, tk.END)  # Clear the search entry
@@ -429,14 +398,15 @@ def main():
 
                 combobox = ttk.Combobox(row_frame, values=block_options, font=("Helvetica", 11), state="normal", width=20)
                 combobox.set(block_name)  # Set current block
-                combobox.pack(side=tk.LEFT, padx=5)
+                combobox.pack(side=tk.LEFT, padx=5)   
 
                 # Store combobox reference
                 combobox_mapping[id_value] = combobox
                 
                 # Bind the selection change to save the mapping
                 combobox.bind("<<ComboboxSelected>>", lambda e, id_value=id_value: update_mapping_on_change(id_value))
-                combobox.bind("<KeyRelease>", lambda e, id_value=id_value: update_mapping_on_change(id_value))
+                combobox.bind("<KeyRelease>",combobox_search, add="+") 
+                combobox.bind("<KeyRelease>", lambda e, id_value=id_value: update_mapping_on_change(id_value), add="+")
 
         def update_page():
             # Load visible rows based on the current page
@@ -455,7 +425,6 @@ def main():
             nonlocal current_page
             search_term = search_entry.get().lower()  # Get the search term and convert to lowercase
             nonlocal filtered_items
-
             # Filter items based on search term
             filtered_items = [(id_value, block_name) for id_value, block_name in cc_to_mc_mapping.items()
                             if search_term in cc_block_name.get(int(id_value), '').lower()]
@@ -463,19 +432,55 @@ def main():
             current_page = 0  # Reset to first page after search
             update_page()  # Update the visible rows
 
-        # Bind the search bar to call search_items when the text changes
-        search_entry.bind("<KeyRelease>", search_items)
+                # Bind the search bar to call search_items when the text changes
+        
+                # Create a frame for the save and cancel buttons
+        
+        bottom_frame = tk.Frame(mapping_window, bg="#f0f4f8")
+        bottom_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
+        # Exit button
+        exit_button = tk.Button(bottom_frame, text="Exit", command=mapping_window.destroy,
+                                font=("Helvetica", 10), bg="#f2545b", fg="white", relief="flat", activebackground="#f0323e", padx=8, pady=4)
+        exit_button.pack(side=tk.RIGHT, padx=5)
 
+        # Create a frame for the search bar
+        search_frame = tk.Frame(mapping_window, bg="#f0f4f8")
+        search_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=(10, 0))
+        # Search bar
+        search_label = tk.Label(search_frame, text="Search:", bg="#f0f4f8", fg="#4a4e69", font=("Helvetica", 11))
+        search_label.pack(side=tk.LEFT)
+        search_entry = tk.Entry(search_frame, width=56, font=("Helvetica", 11), bg="#e8eaf6", fg="#4a4e69", relief="flat", highlightthickness=1, highlightbackground="#d4e6f1")
+        search_entry.pack(side=tk.LEFT, padx=5, pady=5, ipady=4)
+        clear_search_button = tk.Button(search_frame, text=" X ", command=lambda: clear_search(),
+                                        font=("Helvetica", 10), bg="#f2545b", fg="white", relief="flat", activebackground="#f0323e", padx=8, pady=3)
+        clear_search_button.pack(side=tk.LEFT, padx=0)
+
+        # Previous button
+        prev_button = tk.Button(bottom_frame, text="Previous", command=lambda: change_page(-1),
+                                font=("Helvetica", 10), bg="#a3d39c", fg="white", relief="flat", activebackground="#86b08a", padx=8, pady=4)
+        prev_button.pack(side=tk.LEFT, padx=5)
+        # Next button
+        next_button = tk.Button(bottom_frame, text="Next", command=lambda: change_page(1),
+                                font=("Helvetica", 10), bg="#a3d39c", fg="white", relief="flat", activebackground="#86b08a", padx=8, pady=4)
+        next_button.pack(side=tk.LEFT, padx=5)
+
+        # Create a frame for comboboxes
+        data_frame = tk.Frame(mapping_window, bg="#f0f4f8")
+        data_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Pagination variables
+        items_per_page = 18  # Number of items to display per page
+        current_page = 0  # Current page index
+        filtered_items = list(cc_to_mc_mapping.items())  # Initialize with all items
+        search_entry.bind("<KeyRelease>", search_items)
         # Load the initial rows
         update_page()
 
     def update_mapping_on_change(id_value):
         # Update the dictionary with the current selection from the combobox
         cc_to_mc_mapping[str(id_value)] = combobox_mapping[id_value].get()
-
         # Save the updated mapping to a file
         save_mapping()
-
         # Update the status in the main window
         status_label.config(text="Mapping updated and saved successfully!", fg="#6c757d")
 
@@ -490,6 +495,15 @@ def main():
         # Update the status in the main window and close the update window
         status_label.config(text="Mapping updated and saved successfully!", fg="#6c757d")
         mapping_window.destroy()
+
+    def combobox_search(event):
+        combobox = event.widget  # Get the Combobox widget from the event
+        value = combobox.get()
+        if value == "":
+            combobox['values'] = block_options  # Restore the full list when input is cleared
+        else:
+            query = [item for item in block_options if value.lower() in item.lower()]
+            combobox['values'] = query  # Update the dropdown options
 
     def open_realm_block_mapping_window():
         chunk_size = 7
@@ -534,6 +548,7 @@ def main():
             combobox = ttk.Combobox(row_frame, values=block_options, font=("Helvetica", 11), state="normal", width=20)
             combobox.set(cc_to_mc_mapping.get(str(block_id), "smooth_stone"))  # Default to the first option
             combobox.pack(side=tk.LEFT, padx=5)
+            combobox.bind("<KeyRelease>",combobox_search)      
 
             # Store the combobox in a dictionary with the block ID as the key
             combobox_mapping[block_id] = combobox
@@ -649,20 +664,6 @@ def main():
     info_label.pack(pady=(3, 18))
 
     root.mainloop()
-
-def allocate_memory_in_process(size):
-    pid = get_pid()
-    process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
-    if not process_handle:
-        raise Exception("Failed to open the process")
-    
-    # Allocate memory (7 million bytes)
-    allocated_memory = VirtualAllocEx(process_handle, None, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)
-    if not allocated_memory:
-        raise ctypes.WinError(ctypes.get_last_error())
-    
-    # print(f"Allocated memory at address: {allocated_memory:#x}")
-    return allocated_memory
 
 
 if __name__ == "__main__":

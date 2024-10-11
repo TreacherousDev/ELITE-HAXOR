@@ -212,13 +212,11 @@ cc_to_mc_mapping = {
     745: "orange_concrete",
     746: "pink_concrete",
 }
-# Create a dictionary with keys from 100 to 2004, all values set to "smooth_stone"
-data = {i: "smooth_stone" for i in range(100, 2005)}
-
-merged_data = {**data, **cc_to_mc_mapping}
-
+import json
+foo = {}
 # Save the dictionary to a JSON file
+with open('block_mappings.json', 'r') as json_file:
+    foo = json.load(json_file)
 with open('block_mappings.json', 'w') as json_file:
-    json.dump(merged_data, json_file, indent=4)
-
+    json.dump(foo, json_file, indent=4)
 print("JSON file 'block_data.json' has been created.")
