@@ -1,5 +1,5 @@
 ## ELITE HAXOR
-### An Exraordinary Litematica Integrated, Translator Embedded, Highly Automated Xeroxer Of Realms
+### An Extraordinary Litematica Integrated, Translator Embedded, Highly Automated Xeroxer Of Realms
 This program converts a Cubic Castles realm into a .litematic file that can be imported into Minecraft using the Litematica Mod. Works only on Windows OS 64-bit x86-64 systems.
 
 ## Prerequisites:
