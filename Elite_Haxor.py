@@ -262,20 +262,20 @@ counter_memory_address = 0
 # Static Variables Reference
 variables_content = ("00 00 00 00 00 00 00 63 63 63")
 # Function 1
-code_cave_1_offset = 0x2ED4F7
+code_cave_1_offset = 0xDA03E1
 code_cave_1_content = ""
-function_jump_1_offset = 0xC8BE8
-function_jump_1_content = ("E9 0A 49 22 00 66 90")
+function_jump_1_offset = 0xC8F57
+function_jump_1_content = ("E9 85 74 CD 00 66 90")
 # Function 2
-code_cave_2_offset = 0x2ED5E0 
+code_cave_2_offset = 0xDA0573
 code_cave_2_content = ""
-function_jump_2_offset = 0x193E5F 
-function_jump_2_content = ("E9 7C 97 15 00 66 90")
+function_jump_2_offset = 0x194766
+function_jump_2_content = ("E9 08 BE C0 00")
 # Function 3
-code_cave_3_offset = 0x2ED616
+code_cave_3_offset = 0xDA04EB
 code_cave_3_content = ""
-function_jump_3_offset = 0x1DAEE2
-function_jump_3_content = ("E9 2F 27 11 00 90")
+function_jump_3_offset = 0x1DB7E6
+function_jump_3_content = ("E9 00 4D BC 00 90")
 
 #schematic_directory = "" #"C:/Users/adant/curseforge/minecraft/Instances/Litematica/schematics"
 
@@ -300,20 +300,21 @@ def manage_memory():
     counter_addr = address_to_bytes_string(data_base_address)
 
     code_cave_1_content	= (
-        "66 50 8A 46 02 3A 05 " 
-        + x_start + "0F 8C 49 00 00 00 3A 05 " + x_end + "0F 8F 3D 00 00 00 8A 46 04 3A 05 "
-        + y_start + "0F 8C 2E 00 00 00 3A 05 " + y_end + "0F 8F 22 00 00 00 8A 46 06 3A 05 "
-        + z_start + "0F 8C 13 00 00 00 3A 05 " + z_end + "0F 8F 07 00 00 00 66 58 E9 07 00 "
-        "00 00 66 58 E9 66 00 00 00 66 52 66 51 88 E1 80 E1 F0 C0 E9 04 88 CA 66 59 66 50 66 "
-        "25 FF 0F 66 3D 00 00 0F 84 42 00 00 00 53 51 B9 " + bp_addr + "03 0D " + counter_addr
-        + "0F B6 5E 02 88 19 0F B6 5E 04 88 59 01 0F B6 5E 06 88 59 02 0F B6 DA 88 51 03 0F "
-        "B6 5E 11 88 59 04 66 89 41 05 C7 41 07 FF FF FF FF 83 05 " + counter_addr + "07 59 "
-        "5B 66 58 66 5A 66 89 06 C6 46 0C 00 E9 25 B6 DD FF") 
-    code_cave_2_content = ("C7 05 " + counter_addr + "00 00 00 00 83 4D FC FF 8D 4D AC E9 70 68 EA FF")
+      "66 50 8A 46 02 3A 05 " 
+    + x_start + "0F 8C 49 00 00 00 3A 05 " + x_end + "0F 8F 3D 00 00 00 8A 46 04 3A 05 "
+    + y_start + "0F 8C 2E 00 00 00 3A 05 " + y_end + "0F 8F 22 00 00 00 8A 46 06 3A 05 "
+    + z_start + "0F 8C 13 00 00 00 3A 05 " + z_end + "0F 8F 07 00 00 00 66 58 E9 07 00 "
+    "00 00 66 58 E9 6A 00 00 00 66 51 88 E1 80 E1 F0 C0 E9 04 88 0D B8 04 5C 01 66 59 66 50 66 "
+    "25 FF 0F 66 3D 00 00 0F 84 46 00 00 00 53 51 B9 " + bp_addr + "03 0D " + counter_addr
+    + "0F B6 5E 02 88 19 0F B6 5E 04 88 59 01 0F B6 5E 06 88 59 02 0F B6 1D B8 04 5C 01 88 59 03 0F "
+    "B6 5E 11 88 59 04 66 89 41 05 C7 41 07 FF FF FF FF 83 05 " + counter_addr + "07 59 "
+    "5B 66 58 66 89 06 C6 46 0C 00 E9 A6 8A 32 FF") 
+    
+    code_cave_2_content = ("C7 05 " + counter_addr + "00 00 00 00 8D 45 AC 8B CB E9 E4 41 3F FF FF")
     code_cave_3_content = (
-    "53 52 BB " + bp_addr +  "81 3B FF FF FF FF 0F 84 33 00 00 00 0F B6 13 3A 50 02 0F 85 22 "
-    "00 00 00 0F B6 53 01 3A 50 04 0F 85 15 00 00 00 0F B6 53 02 3A 50 06 0F 85 08 00 00 00 "
-    "88 4B 04 E9 05 00 00 00 83 C3 07 EB C1 5A 5B 88 48 11 8B 4D 08 E9 7F D8 EE FF")
+    "53 52 BB " + bp_addr + "81 3B FF FF FF FF 0F 84 33 00 00 00 0F B6 13 3A 50 02 0F 85 22 00 00 00 0F " 
+    "B6 53 01 3A 50 04 0F 85 15 00 00 00 0F B6 53 02 3A 50 06 0F 85 08 00 00 00 88 4B 04 E9 05 00 00 00 "
+    "83 C3 07 EB C1 5A 5B 88 48 11 8B 4D 08 E9 AE B2 43 FF 00")
 
 cc_to_mc_mapping = {}
 def main():
